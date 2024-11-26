@@ -1,14 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon Nov 25 22:48:52 2024
-
 @author: laurajorgensen
-
-cd /Users/laurajorgensen/Desktop/Desktop
-
-streamlit run app.py
-
 """
 
 import streamlit as st
@@ -16,6 +9,49 @@ import numpy as np
 from sklearn.decomposition import PCA
 from sklearn.metrics.pairwise import euclidean_distances
 from PIL import Image, ExifTags
+import os
+import zipfile
+import matplotlib.pyplot as plt
+from sklearn.datasets import fetch_olivetti_faces
+
+# Helper function: Compress directory to zip
+def compress_to_zip(source_dir, zip_name):
+    with zipfile.ZipFile(zip_name, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        for root, dirs, files in os.walk(source_dir):
+            for file in files:
+                file_path = os.path.join(root, file)
+                arcname = os.path.relpath(file_path, source_dir)
+                zipf.write(file_path, arcname)
+
+# Generate Olivetti Faces images
+def generate_and_compress_olivetti_faces():
+    output_dir = "olivetti_faces"
+    zip_name = "olivetti_faces.zip"
+    
+    # Generate dataset
+    data = fetch_olivetti_faces(shuffle=False)  # Sørg for, at billederne ikke blandes
+    images = data.images
+    targets = data.target
+
+    # Root-mappen, hvor billederne gemmes
+    os.makedirs(output_dir, exist_ok=True)  # Opret root-mappen, hvis den ikke findes
+
+    # Loop gennem billederne og gem dem i mapper
+    for i, (image, person_id) in enumerate(zip(images, targets)):
+        # Opret en mappe til personen, hvis den ikke allerede findes
+        person_dir = os.path.join(output_dir, f"person{person_id + 1}")
+        os.makedirs(person_dir, exist_ok=True)
+        
+        # Navngiv billedet
+        image_filename = os.path.join(person_dir, f"person{person_id + 1}_billede{i % 10 + 1}.png")
+        
+        # Gem billedet
+        plt.imsave(image_filename, image, cmap='gray')
+
+    # Compress the dataset into a zip file
+    compress_to_zip(output_dir, zip_name)
+    return zip_name
+
 
 # Helper function to handle EXIF orientation
 def correct_image_orientation(image):
@@ -75,7 +111,10 @@ def display_images_in_grid(images, captions, max_per_row=5):
         # Fill the remaining columns with empty space for alignment
         for i in range(len(row), max_per_row):
             cols[i].empty()
-            
+        
+# App navn og icon
+st.set_page_config(page_title="Ansigtsgenkendelse",page_icon=":man:")    
+        
 # App title and instructions
 st.title("Ansigtsgenkendelse med Eigenface-metoden")
 st.write("Upload mindst 3 billeder.")
@@ -83,9 +122,25 @@ st.write("Upload mindst 3 billeder.")
 # Information about HEIC files and conversion
 st.markdown(
     """
-    **Bemærk:** HEIC-filer kan ikke uploades. Enten konverter dem lokalt på din computere ellers ændre formateringsindstillingen i din mobil inden billederne bliver taget. Alternativt brug en online-konverter som [heictojpg.com](https://heictojpg.com).
+    **Bemærk:** HEIC-filer kan ikke uploades. Enten konverter dem lokalt på din computere ellers ændre formateringsindstillingen i din mobil inden billederne bliver taget. Eller brug en online-konverter som [heictojpg.com](https://heictojpg.com).
     """
 )
+
+# Tilføj ny sektion til Olivetti Faces download
+st.markdown("**Alternativt:** Benyt Olivetti Faces, som er et kendt datasæt til ansigtsgenkendelse. <br>Datasættet kan genereres og downloades her:", unsafe_allow_html=True)
+
+# Single button for all actions
+if st.button("Klik her for at generer datasættet"):
+    zip_name = generate_and_compress_olivetti_faces()  # Generate and compress dataset
+
+    # Provide the zip file for download
+    with open(zip_name, "rb") as zip_file:
+        st.download_button(
+            label="Klik her for at downloade datasættet",
+            data=zip_file,
+            file_name=zip_name,
+            mime="application/zip"
+        )
 
 # Step 1: Upload training images
 st.header("1. Upload træningsbilleder")
