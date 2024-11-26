@@ -1,1 +1,5 @@
-streamlit==1.40.1numpyPillowscikit-learn
+streamlit==1.40.1
+numpy
+Pillow
+scikit-learn
+matplotlib
