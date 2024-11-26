@@ -117,7 +117,6 @@ st.set_page_config(page_title="Ansigtsgenkendelse",page_icon=":man:")
         
 # App title and instructions
 st.title("Ansigtsgenkendelse med Eigenface-metoden")
-st.write("Upload mindst 3 billeder.")
 
 # Information about HEIC files and conversion
 st.markdown(
