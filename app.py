@@ -129,7 +129,7 @@ st.markdown(
 st.markdown("**Alternativt:** Benyt Olivetti Faces, som er et kendt datasæt til ansigtsgenkendelse. <br>Datasættet kan genereres og downloades her:", unsafe_allow_html=True)
 
 # Single button for all actions
-if st.button("Klik her for at generer datasættet"):
+if st.button("Klik her for at generere datasættet"):
     zip_name = generate_and_compress_olivetti_faces()  # Generate and compress dataset
 
     # Provide the zip file for download
